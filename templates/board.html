@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EchoBoard – {{ code }}</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    :root{
+      --bg:#0f172a; --fg:#e2e8f0; --card:#0b1220; --stroke:#1e293b; --acc:#3b82f6; --ok:#22c55e;
+    }
+    .theme-ocean { --acc:#3b82f6; --ok:#22c55e; }
+    .theme-mint  { --acc:#2dd4bf; --ok:#84cc16; }
+    .theme-sunset{ --acc:#fb7185; --ok:#f59e0b; }
+    .theme-violet{ --acc:#8b5cf6; --ok:#06b6d4; }
+    .theme-slate { --acc:#64748b; --ok:#94a3b8; }
+
+    body{font-family:system-ui,Segoe UI,Roboto,Ubuntu;padding:16px;margin:0;background:var(--bg);color:var(--fg)}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+    .muted{color:#94a3b8}
+    .layout{display:grid;grid-template-columns:1fr 320px;gap:12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px}
+    input,button,textarea,select{padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:#111827;color:var(--fg)}
+    button{background:var(--ok);border-color:var(--ok);cursor:pointer;font-weight:700}
+    .btn{background:var(--acc);border-color:var(--acc)}
+    textarea{min-height:80px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .tag{font-size:12px;background:var(--stroke);padding:4px 8px;border-radius:999px}
+    .sidebar .section{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px;margin-bottom:12px}
+    .chat-log{height:320px;overflow:auto;border:1px solid var(--stroke);border-radius:10px;padding:8px;background:#0b1020}
+    .chat-item{margin:6px 0}
+    .chat-author{color:var(--acc);font-weight:700}
+  </style>
+</head>
+<body class="theme-{{ theme|default('ocean') }}">
+  <div class="top">
+    <div>EchoBoard • <strong>{{ code }}</strong> <span class="muted" id="presence">● 0 online</span></div>
+    <div class="row">
+      <input id="nick" placeholder="Dein Name (optional)" style="width:180px">
+      <select id="theme">
+        <option value="ocean">Ocean</option>
+        <option value="mint">Mint</option>
+        <option value="sunset">Sunset</option>
+        <option value="violet">Violet</option>
+        <option value="slate">Slate</option>
+      </select>
+      <button class="btn" onclick="copyLink()">Link kopieren</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="row" style="margin-bottom:12px">
+        <textarea id="text" placeholder="Neue Karte… (max 280)"></textarea>
+        <select id="tag">
+          <option value="">(Tag)</option>
+          <option>🟢</option><option>🟡</option><option>🔴</option>
+          <option>⚡️</option><option>❓</option>
+        </select>
+        <button onclick="create()">Hinzufügen</button>
+      </div>
+      <div class="grid" id="cards"></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="section">
+        <div style="font-weight:700;margin-bottom:8px">Wer ist hier?</div>
+        <div id="names" class="muted">–</div>
+      </div>
+      <div class="section">
+        <div style="font-weight:700;margin-bottom:8px">Chat</div>
+        <div id="chat" class="chat-log"></div>
+        <div class="row" style="margin-top:8px">
+          <input id="chatText" placeholder="Nachricht… (Enter)" style="flex:1">
+          <button class="btn" onclick="sendChat()">Senden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  const code = "{{ code }}";
+
+  // 👉 WICHTIG: Nur WebSocket-Transport, kein HTTP-Polling/Upgrade
+// Statt: const socket = io("/", { transports:["websocket"], upgrade:false });
+const socket = io("/", {
+  transports: ["polling"],   // nur HTTP Long-Polling
+  upgrade: false,            // kein Upgrade-Versuch
+  withCredentials: false,
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 500,
+  path: "/socket.io/"
+});
+
+
+  const $ = (s)=>document.querySelector(s);
+  const cardsEl = $("#cards");
+  const chatEl = $("#chat");
+
+  function escapeHtml(s){return (s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));}
+
+  function cardHtml(c){
+    const tag = c.tag ? `<span class="tag">${escapeHtml(c.tag)}</span>` : "";
+    return `<div class="card" id="card-${c.id}">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div>${tag}</div>
+        <div class="muted" style="font-size:12px">#${c.id}</div>
+      </div>
+      <div style="margin:8px 0;white-space:pre-wrap">${escapeHtml(c.text)}</div>
+      <div class="row">
+        <button onclick="vote(${c.id})">👍 ${c.votes ?? 0}</button>
+      </div>
+    </div>`;
+  }
+  function renderCards(cards){ cardsEl.innerHTML = cards.map(cardHtml).join(""); }
+  function addCard(c){ cardsEl.insertAdjacentHTML("afterbegin", cardHtml(c)); }
+  function updateCard(c){ const el = document.getElementById(`card-${c.id}`); if(el) el.outerHTML = cardHtml(c); }
+
+  function renderMessages(list){
+    chatEl.innerHTML = list.map(m=>(
+      `<div class="chat-item">
+         <span class="chat-author">${escapeHtml(m.author||"Anon")}:</span>
+         <span>${escapeHtml(m.text)}</span>
+       </div>`
+    )).join("");
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+  function addMessage(m){
+    chatEl.insertAdjacentHTML("beforeend",
+      `<div class="chat-item"><span class="chat-author">${escapeHtml(m.author||"Anon")}:</span> <span>${escapeHtml(m.text)}</span></div>`
+    );
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function create(){
+    const text = $("#text").value.slice(0,280).trim();
+    const tag = $("#tag").value.slice(0,16);
+    const author = $("#nick").value.slice(0,32);
+    if(!text) return;
+    socket.emit("create_card", { code, text, tag, author });
+    $("#text").value = ""; $("#tag").value = "";
+  }
+  function vote(id){ socket.emit("vote_card", { code, cardId: id }); }
+  function copyLink(){ navigator.clipboard.writeText(location.href); alert("Link kopiert!"); }
+  function sendChat(){
+    const t = $("#chatText").value.trim();
+    if(!t) return;
+    const author = $("#nick").value.slice(0,32);
+    socket.emit("send_chat", { code, author, text: t });
+    $("#chatText").value = "";
+  }
+
+  // Theme Handling
+  function applyTheme(name){
+    document.body.classList.remove("theme-ocean","theme-mint","theme-sunset","theme-violet","theme-slate");
+    document.body.classList.add("theme-"+name);
+    $("#theme").value = name;
+  }
+  $("#theme").addEventListener("change", ()=>{
+    socket.emit("set_theme", { code, theme: $("#theme").value });
+  });
+
+  // Presence name speichern
+  $("#nick").addEventListener("input", e => localStorage.setItem("nick", e.target.value));
+  $("#nick").value = localStorage.getItem("nick") || "";
+
+  // Enter im Chat
+  $("#chatText").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){ e.preventDefault(); sendChat(); }
+  });
+
+  // Socket Lifecycle
+  socket.on("connect", ()=> {
+    socket.emit("join_board", { code, clientName: $("#nick").value || "Anon" });
+  });
+  socket.on("connect_error", (err)=> {
+    console.warn("Socket connect_error:", err?.message || err);
+  });
+  socket.on("error", (e)=> alert(e.message || "Fehler"));
+
+  socket.on("board_state", ({cards, messages, theme})=>{
+    renderCards(cards||[]);
+    renderMessages(messages||[]);
+    applyTheme(theme || "ocean");
+  });
+  socket.on("card_added", addCard);
+  socket.on("card_updated", updateCard);
+  socket.on("chat_added", addMessage);
+  socket.on("theme_changed", ({theme})=> applyTheme(theme));
+  socket.on("presence", ({count, names})=>{
+    $("#presence").textContent = `● ${count} online`;
+    $("#names").textContent = (names && names.length) ? names.join(", ") : "–";
+  });
+</script>
+</body>
+</html>

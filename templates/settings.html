@@ -1,0 +1,25 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einstellungen • EchoBoard</title>
+<style>
+body{font-family:system-ui;padding:24px;background:#0f172a;color:#e2e8f0}
+.card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;max-width:640px}
+input,button{padding:10px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
+button{background:#3b82f6;border-color:#3b82f6;font-weight:700;cursor:pointer}
+img{border-radius:12px;border:1px solid #1e293b}
+</style></head><body>
+<div class="card">
+  <h2>Einstellungen</h2>
+  {% if u.avatar %}
+  <p>Aktuelles Avatar:</p>
+  <img src="/u/avatars/{{ u.avatar }}" alt="avatar" width="96" height="96">
+  {% endif %}
+  <form action="/settings/avatar" method="post" enctype="multipart/form-data">
+    <p>Neues Avatar hochladen:</p>
+    <input type="file" name="avatar" accept=".png,.jpg,.jpeg,.webp">
+    <button>Speichern</button>
+  </form>
+  <div style="height:8px"></div>
+  <form action="/auth/logout" method="post"><button>Logout</button></form>
+</div>
+</body></html>

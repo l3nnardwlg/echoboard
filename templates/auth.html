@@ -1,0 +1,25 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login • EchoBoard</title>
+<style>
+body{font-family:system-ui;display:grid;place-items:center;height:100vh;background:#0f172a;color:#e2e8f0}
+.card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;min-width:320px}
+input,button{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0;margin:6px 0}
+button{background:#3b82f6;border-color:#3b82f6;font-weight:700;cursor:pointer}
+</style></head><body>
+<div class="card">
+  <h2 style="margin:0 0 8px">Willkommen</h2>
+  <form action="/auth/login" method="post">
+    <input name="username" placeholder="Username" required>
+    <input name="password" placeholder="Passwort" type="password" required>
+    <button type="submit">Einloggen</button>
+  </form>
+  <div style="height:8px"></div>
+  <form action="/auth/register" method="post">
+    <input name="username" placeholder="Neuer Username" required>
+    <input name="email" placeholder="Email (optional)">
+    <input name="password" placeholder="Passwort" type="password" required>
+    <button type="submit">Registrieren</button>
+  </form>
+</div>
+</body></html>

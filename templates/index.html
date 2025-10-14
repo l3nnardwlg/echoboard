@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EchoBoard</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Ubuntu;padding:24px;margin:0;background:#0f172a;color:#e2e8f0}
+    .card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:16px;max-width:720px;margin:auto}
+    .row{display:flex;gap:8px}
+    input,button{padding:10px 12px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
+    button{background:#3b82f6;border-color:#3b82f6;cursor:pointer;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>EchoBoard</h1>
+    <p>Realtime-Board für Notizen & Votes.</p>
+    <form action="/new" method="post"><button type="submit">➕ Neues Board</button></form>
+    <div style="height:12px"></div>
+    <div class="row">
+      <input id="code" placeholder="Board-Code (z. B. a1b2c3)">
+      <button onclick="go()">Beitreten</button>
+    </div>
+  </div>
+  <script>
+    function go(){
+      const v = document.getElementById('code').value.trim();
+      if(v) location.href = '/b/'+encodeURIComponent(v);
+    }
+  </script>
+  <p>
+  <a href="/auth">Login/Registrieren</a> · 
+  <a href="/contacts">Kontakte</a> · 
+  <a href="/settings">Einstellungen</a>
+</p>
+</body>
+</html>

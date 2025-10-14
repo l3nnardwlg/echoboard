@@ -1,0 +1,71 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat mit {{ other.username }} • EchoBoard</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+body{font-family:system-ui;padding:16px;background:#0f172a;color:#e2e8f0}
+.wrap{max-width:720px;margin:auto}
+.log{height:420px;overflow:auto;border:1px solid #1e293b;border-radius:12px;background:#0b1020;padding:10px}
+.msg{margin:6px 0}
+.me{color:#22c55e;font-weight:700}
+.them{color:#93c5fd;font-weight:700}
+.row{display:flex;gap:8px;margin-top:10px}
+input,button{padding:10px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
+button{background:#3b82f6;border-color:#3b82f6;font-weight:700;cursor:pointer}
+</style></head><body>
+<div class="wrap">
+  <h2>DM mit {{ other.username }} <small id="state" style="font-size:14px;color:#94a3b8"></small></h2>
+  <div id="log" class="log">
+    {% for m in messages %}
+      <div class="msg">
+        <span class="{{ 'me' if m.sender_id==me.id else 'them' }}">{{ 'Ich' if m.sender_id==me.id else other.username }}:</span>
+        <span>{{ m.text }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="row">
+    <input id="text" placeholder="Nachricht…" style="flex:1">
+    <button onclick="send()">Senden</button>
+  </div>
+</div>
+<script>
+  const other = "{{ other.username }}";
+  const log = document.getElementById("log");
+  const socket = io("/", { transports:["polling","websocket"], upgrade:true, path:"/socket.io/" });
+
+  function add(sender, text, isMe){
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<span class="${isMe?'me':'them'}">${sender}:</span> <span>${text.replace(/[&<>"']/g, s=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[s]))}</span>`;
+    log.appendChild(div); log.scrollTop = log.scrollHeight;
+  }
+
+  socket.on("connect", ()=>{
+    socket.emit("dm_join", { other });
+  });
+  socket.on("dm_presence", ({other_online})=>{
+    document.getElementById("state").textContent = other_online ? "• online" : "• offline";
+  });
+  socket.on("dm_new", (m)=>{
+    const isMe = m.sender === "Ich"; // Server schickt username in obigem Beispiel nicht "Ich", daher unten anders
+  });
+
+  // Für Einfachheit: Client entscheidet Anzeige
+  socket.on("dm_new", (m)=>{
+    const isMe = false; // wir kennen hier nicht 'Ich' vom Server; wir entscheiden per sender_id im erweiterten Protokoll – fürs MVP reicht die Anzeige "them"
+    add(m.sender || "User", m.text, isMe);
+  });
+
+  function send(){
+    const t = document.getElementById("text").value.trim();
+    if(!t) return;
+    socket.emit("dm_send", { to: other, text: t });
+    add("Ich", t, true);
+    document.getElementById("text").value = "";
+  }
+
+  document.getElementById("text").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){ e.preventDefault(); send(); }
+  });
+</script>
+</body></html>
