@@ -175,13 +175,21 @@ def board_page(code):
     b = get_board_by_code(code)
     if not b:
         return "Board not found", 404
-    return render_template("board.html", code=code, theme=b["theme"])
+    return render_template("board.html", code=code, theme=b["theme"], title=b["title"])
 
 # -------------------- HTTP: Auth --------------------
 @app.get("/auth")
 def login_page():
-    if current_user(): return redirect(url_for("home"))
-    return render_template("auth.html")
+    if current_user():
+        return redirect(url_for("home"))
+    return render_template(
+        "auth.html",
+        login_error=None,
+        register_error=None,
+        login_username="",
+        register_username="",
+        register_email="",
+    )
 
 @app.post("/auth/register")
 def register_post():
@@ -190,18 +198,31 @@ def register_post():
     password = (request.form.get("password") or "")[:128]
     if not username or not password:
         return "Missing username or password", 400
+    email_db = email or None
     pass_hash = generate_password_hash(password)
     c = db(); cur = c.cursor()
     try:
         cur.execute("INSERT INTO users(username, email, pass_hash) VALUES(?,?,?)",
-                    (username, email, pass_hash))
+                    (username, email_db, pass_hash))
         c.commit()
         cur.execute("SELECT id FROM users WHERE username=?", (username,))
         uid = cur.fetchone()["id"]
         session["uid"] = uid
         return redirect(url_for("home"))
     except sqlite3.IntegrityError:
-        return "Username oder Email schon vergeben", 400
+        c.rollback()
+        msg = "Benutzername ist bereits vergeben."
+        cur.execute("SELECT 1 FROM users WHERE email=?", (email_db,))
+        if email_db and cur.fetchone():
+            msg = "E-Mail wird bereits verwendet."
+        return render_template(
+            "auth.html",
+            login_error=None,
+            register_error=msg,
+            login_username="",
+            register_username=username,
+            register_email=email,
+        ), 400
     finally:
         c.close()
 
@@ -211,7 +232,14 @@ def login_post():
     password = (request.form.get("password") or "")
     u = get_user_by_username(username)
     if not u or not check_password_hash(u["pass_hash"], password):
-        return "Login fehlgeschlagen", 400
+        return render_template(
+            "auth.html",
+            login_error="Ungültige Kombination aus Username und Passwort.",
+            register_error=None,
+            login_username=username,
+            register_username="",
+            register_email="",
+        ), 400
     session["uid"] = u["id"]
     return redirect(url_for("home"))
 
@@ -293,6 +321,26 @@ def dm_page(username):
 def api_me():
     u = current_user()
     return jsonify(u or {})
+
+@app.get("/discover")
+def discover_page():
+    c = db(); cur = c.cursor()
+    cur.execute(
+        """
+        SELECT boards.id, boards.code, boards.title, boards.theme, boards.created_at,
+               COUNT(DISTINCT cards.id) AS card_count,
+               COUNT(DISTINCT messages.id) AS message_count
+        FROM boards
+        LEFT JOIN cards ON cards.board_id = boards.id
+        LEFT JOIN messages ON messages.board_id = boards.id
+        GROUP BY boards.id
+        ORDER BY boards.created_at DESC
+        LIMIT 12
+        """
+    )
+    rows = [dict(x) for x in cur.fetchall()]
+    c.close()
+    return render_template("discover.html", boards=rows)
 
 @app.get("/api/board/<code>/export/cards.csv")
 def export_cards_csv(code):
@@ -407,7 +455,8 @@ def join_board(data):
     emit("board_state", {
         "cards": cards,
         "messages": list(reversed(messages)),
-        "theme": b["theme"]
+        "theme": b["theme"],
+        "title": b["title"]
     })
 
     socketio.emit("presence", {
@@ -492,6 +541,21 @@ def set_theme_ev(data):
     cur.execute("UPDATE boards SET theme=? WHERE id=?", (theme, b["id"]))
     c.commit(); c.close()
     socketio.emit("theme_changed", {"theme": theme}, room=board_room(code))
+
+@socketio.on("set_title")
+def set_title_ev(data):
+    code = (data or {}).get("code")
+    title = ((data or {}).get("title") or "").strip()
+    if not code:
+        emit("error", {"message": "Missing board code"}); return
+    b = get_board_by_code(code)
+    if not b:
+        emit("error", {"message": "Board not found"}); return
+    title = title[:80] or "Team Board"
+    c = db(); cur = c.cursor()
+    cur.execute("UPDATE boards SET title=? WHERE id=?", (title, b["id"]))
+    c.commit(); c.close()
+    socketio.emit("title_changed", {"title": title}, room=board_room(code))
 
 # -------------------- Realtime: Direct Messages --------------------
 def dm_room(a_id, b_id):

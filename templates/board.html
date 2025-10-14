@@ -31,8 +31,9 @@
       box-shadow:0 30px 60px rgba(8,15,30,.35);
     }
     .panel-header{display:flex;flex-direction:column;gap:12px}
-    .board-meta{display:flex;flex-direction:column;gap:4px}
-    .board-code{font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+    .board-meta{display:flex;flex-direction:column;gap:10px}
+    .board-title-input{font-size:1.05rem;font-weight:600;width:100%;background:rgba(15,23,42,.7)}
+    .board-title-input:focus{box-shadow:0 0 0 4px rgba(59,130,246,.15)}
     .presence{font-size:.9rem;color:var(--text-soft)}
     .control-row{display:flex;gap:10px;flex-wrap:wrap}
     label{font-size:.85rem;color:var(--text-soft)}
@@ -41,7 +42,7 @@
       color:var(--text);font-size:1rem;padding:12px 16px;transition:.2s ease;border-bottom-width:2px;
     }
     input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.15)}
-    select{padding-right:36px;background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>');background-repeat:no-repeat;background-position:right 14px center;background-size:12px}
+    select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding-right:36px;background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>');background-repeat:no-repeat;background-position:right 14px center;background-size:12px}
     button{background:linear-gradient(135deg,var(--accent),var(--accent-strong));border-color:transparent;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 20px 30px rgba(59,130,246,.35)}
     button:hover{transform:translateY(-1px);box-shadow:0 24px 44px rgba(59,130,246,.45)}
     .composer textarea{width:100%;min-height:120px;resize:vertical;background:rgba(15,23,42,.6)}
@@ -95,9 +96,10 @@
 </head>
 <body class="theme-{{ theme|default('ocean') }}">
   <header style="max-width:1200px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;gap:18px">
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <span style="letter-spacing:.12em;font-size:.75rem;color:var(--text-soft);text-transform:uppercase">Board-Code</span>
-      <span style="font-size:1.6rem;font-weight:700">{{ code }}</span>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="letter-spacing:.12em;font-size:.75rem;color:var(--text-soft);text-transform:uppercase">Board</span>
+      <span class="board-title-display" style="font-size:1.6rem;font-weight:700">{{ title or 'Team Board' }}</span>
+      <span style="font-size:.9rem;color:var(--text-soft)">Code: <strong>{{ code }}</strong></span>
     </div>
     <div class="identity">
       <label for="nick">Dein Anzeigename</label>
@@ -108,7 +110,8 @@
     <aside class="panel">
       <div class="panel-header">
         <div class="board-meta">
-          <div class="board-code">Team Board</div>
+          <label for="boardTitle" style="font-size:.85rem;color:var(--text-soft)">Board-Titel</label>
+          <input id="boardTitle" class="board-title-input" value="{{ title or 'Team Board' }}" maxlength="80">
           <div class="presence" id="presence">● 0 online</div>
         </div>
         <div class="control-row">
@@ -172,6 +175,9 @@ const socket = io("/", {
   const $ = (s)=>document.querySelector(s);
   const cardsEl = $("#cards");
   const chatEl = $("#chat");
+  const boardTitleInput = document.getElementById("boardTitle");
+  const titleDisplay = document.querySelector(".board-title-display");
+  let currentTitle = boardTitleInput ? (boardTitleInput.value.trim() || "Team Board") : "Team Board";
 
   function escapeHtml(s){return (s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));}
 
@@ -238,9 +244,37 @@ const socket = io("/", {
     document.body.classList.add("theme-"+name);
     $("#theme").value = name;
   }
+  function applyTitle(name){
+    currentTitle = name || "Team Board";
+    if(boardTitleInput){
+      boardTitleInput.value = currentTitle;
+    }
+    if(titleDisplay){
+      titleDisplay.textContent = currentTitle;
+    }
+    document.title = `EchoBoard – ${currentTitle} (${code})`;
+  }
   $("#theme").addEventListener("change", ()=>{
     socket.emit("set_theme", { code, theme: $("#theme").value });
   });
+
+  if(boardTitleInput){
+    boardTitleInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        boardTitleInput.blur();
+      }
+    });
+    boardTitleInput.addEventListener("blur", ()=>{
+      const value = boardTitleInput.value.trim().slice(0,80) || "Team Board";
+      if(value !== currentTitle){
+        socket.emit("set_title", { code, title: value });
+      } else {
+        applyTitle(value);
+      }
+    });
+  }
+  applyTitle(currentTitle);
 
   // Presence name speichern
   $("#nick").addEventListener("input", e => localStorage.setItem("nick", e.target.value));
@@ -260,15 +294,17 @@ const socket = io("/", {
   });
   socket.on("error", (e)=> alert(e.message || "Fehler"));
 
-  socket.on("board_state", ({cards, messages, theme})=>{
+  socket.on("board_state", ({cards, messages, theme, title})=>{
     renderCards(cards||[]);
     renderMessages(messages||[]);
     applyTheme(theme || "ocean");
+    applyTitle(title || "Team Board");
   });
   socket.on("card_added", addCard);
   socket.on("card_updated", updateCard);
   socket.on("chat_added", addMessage);
   socket.on("theme_changed", ({theme})=> applyTheme(theme));
+  socket.on("title_changed", ({title})=> applyTitle(title));
   socket.on("presence", ({count, names})=>{
     $("#presence").textContent = `● ${count} online`;
     const list = (names && names.length) ? names : [];
