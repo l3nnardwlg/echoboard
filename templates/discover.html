@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boards entdecken • EchoBoard</title>
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#0b1220;--panel-soft:#111c34;--accent:#3b82f6;--text:#e2e8f0;--text-soft:#94a3b8;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;padding:32px;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);
+      background:radial-gradient(circle at top,var(--panel-soft) 0%,var(--bg) 55%,#060b16 100%);
+      display:flex;flex-direction:column;gap:32px;align-items:center;
+    }
+    header{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:12px;text-align:center}
+    header h1{margin:0;font-size:2.3rem;letter-spacing:-.01em}
+    header p{margin:0;font-size:1.05rem;color:var(--text-soft)}
+    nav{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    nav a{
+      color:var(--text);text-decoration:none;padding:10px 16px;border-radius:999px;background:rgba(15,23,42,.55);
+      border:1px solid rgba(148,163,184,.25);font-size:.95rem
+    }
+    nav a:hover{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.45)}
+    main{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+    .board-card{
+      background:var(--panel);border:1px solid rgba(148,163,184,.2);border-radius:22px;padding:22px;
+      display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 50px rgba(8,15,30,.4);
+      position:relative;overflow:hidden;
+    }
+    .board-card::after{
+      content:"";position:absolute;inset:0;background:radial-gradient(circle at 90% 0%,rgba(59,130,246,.18),transparent 55%);
+      pointer-events:none;
+    }
+    .board-card h2{margin:0;font-size:1.3rem;letter-spacing:-.01em;z-index:1}
+    .meta{display:flex;gap:12px;font-size:.9rem;color:var(--text-soft);z-index:1;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(148,163,184,.15)}
+    .actions{margin-top:auto;display:flex;justify-content:space-between;align-items:center;z-index:1}
+    .actions a{
+      color:var(--text);text-decoration:none;font-weight:600;background:linear-gradient(135deg,var(--accent),#1d4ed8);
+      padding:10px 16px;border-radius:16px;box-shadow:0 18px 32px rgba(59,130,246,.35);
+    }
+    .empty{
+      grid-column:1 / -1;text-align:center;padding:60px 20px;border-radius:24px;border:1px dashed rgba(148,163,184,.35);
+      background:rgba(15,23,42,.55);font-size:1.05rem;color:var(--text-soft);
+    }
+    @media(max-width:720px){body{padding:24px}header h1{font-size:2rem}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Start</a>
+      <a href="/auth">Login</a>
+      <a href="/contacts">Kontakte</a>
+      <a href="/settings">Einstellungen</a>
+    </nav>
+    <h1>Die neuesten Boards aus der Community</h1>
+    <p>Finde aktive Räume, sieh dir Themen an und springe direkt in Boards, die dich interessieren.</p>
+  </header>
+  <main>
+    {% if boards %}
+      {% for board in boards %}
+        <article class="board-card">
+          <h2>{{ board.title or 'Team Board' }}</h2>
+          <div class="meta">
+            <span class="chip">Code · {{ board.code }}</span>
+            <span class="chip">Karten · {{ board.card_count }}</span>
+            <span class="chip">Chats · {{ board.message_count }}</span>
+          </div>
+          <p style="margin:0;font-size:.95rem;color:var(--text-soft);z-index:1">
+            Erstellt am {{ board.created_at[:16] if board.created_at }}
+          </p>
+          <div class="actions">
+            <span style="font-size:.9rem;color:var(--text-soft)">Theme: {{ board.theme }}</span>
+            <a href="{{ url_for('board_page', code=board.code) }}">Board öffnen →</a>
+          </div>
+        </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        Noch keine öffentlichen Boards – starte das erste!
+      </div>
+    {% endif %}
+  </main>
+</body>
+</html>
