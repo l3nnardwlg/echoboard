@@ -2,30 +2,56 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kontakte • EchoBoard</title>
 <style>
-body{font-family:system-ui;padding:24px;background:#0f172a;color:#e2e8f0}
-.card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;max-width:800px}
-input,button{padding:10px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
-button{background:#3b82f6;border-color:#3b82f6;font-weight:700;cursor:pointer}
-.list{display:grid;gap:8px;margin-top:12px}
-.item{display:flex;align-items:center;gap:10px;background:#0b1020;border:1px solid #1e293b;border-radius:10px;padding:10px}
-a{color:#93c5fd;text-decoration:none}
+:root{--bg:#0b1220;--bg-soft:#111c34;--surface:#101a33;--accent:#3b82f6;--accent-strong:#1d4ed8;--text:#f8fafc;--text-soft:#94a3b8;}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:32px;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(circle at top,var(--bg-soft)0%,var(--bg)55%,#060b16 100%);display:flex;justify-content:center}
+.shell{width:100%;max-width:1000px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:28px}
+.panel{background:var(--surface);border:1px solid rgba(148,163,184,.2);border-radius:28px;padding:28px;box-shadow:0 30px 60px rgba(8,15,30,.38);display:flex;flex-direction:column;gap:20px}
+.panel h2{margin:0;font-size:1.6rem}
+form{display:flex;flex-direction:column;gap:12px;margin:0}
+label{font-size:.85rem;color:var(--text-soft)}
+input,button{border-radius:18px;border:1px solid rgba(148,163,184,.25);background:rgba(15,23,42,.75);color:var(--text);padding:12px 16px;font-size:1rem;transition:.2s ease;border-bottom-width:2px}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.18)}
+button{background:linear-gradient(135deg,var(--accent),var(--accent-strong));border-color:transparent;font-weight:600;cursor:pointer;box-shadow:0 16px 32px rgba(59,130,246,.35)}
+button:hover{transform:translateY(-1px);box-shadow:0 20px 40px rgba(59,130,246,.45)}
+.list{display:flex;flex-direction:column;gap:12px;margin-top:8px;overflow:auto;max-height:520px;padding-right:6px}
+.item{display:flex;align-items:center;gap:14px;padding:16px;border-radius:22px;background:rgba(15,23,42,.7);border:1px solid rgba(148,163,184,.18);transition:.2s ease}
+.item:hover{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.12);transform:translateX(2px)}
+.avatar{width:44px;height:44px;border-radius:16px;object-fit:cover;background:rgba(148,163,184,.18);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent)}
+.name{flex:1;font-size:1.05rem}
+.link{color:var(--text);text-decoration:none;padding:10px 16px;border-radius:18px;background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3)}
+.link:hover{background:rgba(59,130,246,.28)}
+.empty{color:var(--text-soft);font-size:.95rem}
+@media(max-width:960px){body{padding:24px}.shell{grid-template-columns:1fr}}
+@media(max-width:640px){.panel{padding:22px;border-radius:22px}}
 </style></head><body>
-<div class="card">
-  <h2>Kontakte</h2>
-  <form action="/contacts/add" method="post">
-    <input name="username" placeholder="Username hinzufügen">
-    <button>Hinzufügen</button>
-  </form>
-  <div class="list">
-    {% for c in contacts %}
-      <div class="item">
-        {% if c.avatar %}<img src="/u/avatars/{{c.avatar}}" width="36" height="36" style="border-radius:8px">{% endif %}
-        <div style="flex:1">{{ c.username }}</div>
-        <a href="/dm/{{ c.username }}">Direktnachricht →</a>
-      </div>
-    {% else %}
-      <p class="muted">Noch keine Kontakte.</p>
-    {% endfor %}
-  </div>
+<div class="shell">
+  <aside class="panel">
+    <h2>Kontakte finden</h2>
+    <p style="margin:0;color:var(--text-soft);line-height:1.5">Verbinde dich mit deinem Team und starte Direktnachrichten im Messenger-Layout.</p>
+    <form action="/contacts/add" method="post">
+      <label for="contact-username">Username hinzufügen</label>
+      <input id="contact-username" name="username" placeholder="teamkollege" required>
+      <button type="submit">Kontakt speichern</button>
+    </form>
+  </aside>
+  <main class="panel">
+    <h2>Deine Kontakte</h2>
+    <div class="list">
+      {% for c in contacts %}
+        <div class="item">
+          {% if c.avatar %}
+            <img src="/u/avatars/{{c.avatar}}" class="avatar" width="44" height="44" alt="Avatar von {{ c.username }}">
+          {% else %}
+            <div class="avatar">{{ c.username[:2].upper() }}</div>
+          {% endif %}
+          <div class="name">{{ c.username }}</div>
+          <a class="link" href="/dm/{{ c.username }}">Nachricht öffnen →</a>
+        </div>
+      {% else %}
+        <p class="empty">Noch keine Kontakte. Lade Kolleg:innen ein, indem du ihren Username hinzufügst.</p>
+      {% endfor %}
+    </div>
+  </main>
 </div>
 </body></html>

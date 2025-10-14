@@ -2,24 +2,46 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Einstellungen • EchoBoard</title>
 <style>
-body{font-family:system-ui;padding:24px;background:#0f172a;color:#e2e8f0}
-.card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;max-width:640px}
-input,button{padding:10px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
-button{background:#3b82f6;border-color:#3b82f6;font-weight:700;cursor:pointer}
-img{border-radius:12px;border:1px solid #1e293b}
+:root{--bg:#0b1220;--bg-soft:#111c34;--surface:#101a33;--accent:#3b82f6;--accent-strong:#1d4ed8;--danger:#f97316;--text:#f8fafc;--text-soft:#94a3b8;}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:32px;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);background:radial-gradient(circle at top,var(--bg-soft)0%,var(--bg)55%,#060b16 100%);display:flex;justify-content:center}
+.card{width:100%;max-width:720px;background:var(--surface);border:1px solid rgba(148,163,184,.18);border-radius:32px;padding:32px;box-shadow:0 30px 60px rgba(8,15,30,.4);display:flex;flex-direction:column;gap:24px}
+.card h2{margin:0;font-size:1.8rem;letter-spacing:-.01em}
+.section{display:flex;flex-direction:column;gap:12px}
+label{font-size:.85rem;color:var(--text-soft)}
+input[type="file"],button{border-radius:18px;border:1px solid rgba(148,163,184,.25);background:rgba(15,23,42,.75);color:var(--text);padding:12px 16px;font-size:1rem;transition:.2s ease;border-bottom-width:2px}
+input[type="file"]{padding:10px;background:rgba(15,23,42,.65)}
+button{background:linear-gradient(135deg,var(--accent),var(--accent-strong));border-color:transparent;font-weight:600;cursor:pointer;box-shadow:0 16px 32px rgba(59,130,246,.35)}
+button:hover{transform:translateY(-1px);box-shadow:0 20px 42px rgba(59,130,246,.45)}
+.danger{background:linear-gradient(135deg,var(--danger),#c2410c);box-shadow:0 16px 32px rgba(249,115,22,.3)}
+.avatar-preview{display:flex;align-items:center;gap:16px}
+.avatar-preview img{width:96px;height:96px;border-radius:28px;border:1px solid rgba(148,163,184,.25);object-fit:cover}
+.placeholder{width:96px;height:96px;border-radius:28px;background:rgba(59,130,246,.18);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:600;color:var(--accent)}
+@media(max-width:640px){body{padding:24px}.card{padding:24px;border-radius:26px}}
 </style></head><body>
-<div class="card">
-  <h2>Einstellungen</h2>
-  {% if u.avatar %}
-  <p>Aktuelles Avatar:</p>
-  <img src="/u/avatars/{{ u.avatar }}" alt="avatar" width="96" height="96">
-  {% endif %}
-  <form action="/settings/avatar" method="post" enctype="multipart/form-data">
-    <p>Neues Avatar hochladen:</p>
-    <input type="file" name="avatar" accept=".png,.jpg,.jpeg,.webp">
-    <button>Speichern</button>
+<section class="card">
+  <div>
+    <h2>Profil &amp; Einstellungen</h2>
+    <p style="margin:8px 0 0;color:var(--text-soft);line-height:1.5">Personalisiere dein Messenger-Profil für Boards und Direktnachrichten.</p>
+  </div>
+  <div class="section">
+    <label>Aktuelles Avatar</label>
+    <div class="avatar-preview">
+      {% if u.avatar %}
+        <img src="/u/avatars/{{ u.avatar }}" alt="Avatar von {{ u.username }}">
+      {% else %}
+        <div class="placeholder">{{ u.username[:2].upper() }}</div>
+      {% endif %}
+      <div style="color:var(--text-soft);font-size:.95rem;line-height:1.5">Dein Bild wird überall dort angezeigt, wo andere dich sehen – im Kontaktbuch, in Direktnachrichten und Boards.</div>
+    </div>
+  </div>
+  <form class="section" action="/settings/avatar" method="post" enctype="multipart/form-data">
+    <label for="avatar">Neues Avatar hochladen</label>
+    <input id="avatar" type="file" name="avatar" accept=".png,.jpg,.jpeg,.webp">
+    <button type="submit">Speichern</button>
   </form>
-  <div style="height:8px"></div>
-  <form action="/auth/logout" method="post"><button>Logout</button></form>
-</div>
+  <form action="/auth/logout" method="post">
+    <button class="danger" type="submit">Logout</button>
+  </form>
+</section>
 </body></html>
