@@ -161,9 +161,184 @@ def add_contact(user_id, contact_id):
         c.close()
 
 # -------------------- HTTP: Core --------------------
+HOME_FEATURES = [
+    {
+        "category": "Board Collaboration",
+        "items": [
+            "Realtime sticky-note sync",
+            "Threaded feedback bubbles",
+            "Card grouping with drag & drop",
+            "Vote counters with live tally",
+            "Focus timer overlay",
+            "Facilitator spotlight mode",
+            "Merge duplicate ideas",
+            "Comment pinning",
+            "Board activity heatmap",
+            "Export to PDF & CSV"
+        ],
+    },
+    {
+        "category": "Messaging & Presence",
+        "items": [
+            "DM inbox with filters",
+            "Read receipts",
+            "Typing indicators",
+            "Emoji reactions",
+            "AI summary highlights",
+            "Scheduled announcements",
+            "Channel mentions",
+            "Audio room hand-raise",
+            "Presence radar",
+            "Status presets"
+        ],
+    },
+    {
+        "category": "Board Governance",
+        "items": [
+            "Public / private toggles",
+            "Invite-only access codes",
+            "Moderator approvals",
+            "Session lock timer",
+            "Automated clean-up",
+            "Audit log export",
+            "Role badges",
+            "Granular permissions",
+            "Board version history",
+            "Policy reminders"
+        ],
+    },
+    {
+        "category": "Customization",
+        "items": [
+            "Theme presets",
+            "Custom gradients",
+            "Accent color picker",
+            "Compact layout toggle",
+            "Typography packs",
+            "Adaptive spacing",
+            "Rounded corner controls",
+            "Widget ordering",
+            "Animated backgrounds",
+            "Minimal focus mode"
+        ],
+    },
+    {
+        "category": "Productivity",
+        "items": [
+            "Agenda timeline",
+            "Checklist automation",
+            "Meeting notes export",
+            "Sprint retro templates",
+            "Follow-up reminders",
+            "Recurring standups",
+            "Keyboard shortcut map",
+            "Calendar sync",
+            "Task owner handoff",
+            "Priority labels"
+        ],
+    },
+    {
+        "category": "Analytics",
+        "items": [
+            "Sentiment tracker",
+            "Participation scores",
+            "Time-in-stage chart",
+            "Top contributor list",
+            "Idea velocity",
+            "Engagement timeline",
+            "Export to BI",
+            "Heatmap playback",
+            "Goal completion",
+            "Automated insights"
+        ],
+    },
+    {
+        "category": "Integrations",
+        "items": [
+            "Slack sync",
+            "Teams notifications",
+            "Jira issue bridge",
+            "Linear task sync",
+            "Miro import",
+            "Figma preview",
+            "Zapier automation",
+            "Google Drive embed",
+            "Outlook calendar hook",
+            "Webhooks playground"
+        ],
+    },
+    {
+        "category": "Security",
+        "items": [
+            "Two-factor login",
+            "Session device list",
+            "Download watermarking",
+            "Link expiry",
+            "IP allowlist",
+            "Compliance center",
+            "Encrypted attachments",
+            "SOC2 reporting",
+            "Moderator escalation",
+            "Custom password rules"
+        ],
+    },
+    {
+        "category": "Support & Guidance",
+        "items": [
+            "Interactive onboarding",
+            "Template walkthroughs",
+            "Live facilitation tips",
+            "Contextual tooltips",
+            "Best practice library",
+            "Community gallery",
+            "Video tutorials",
+            "Release notes feed",
+            "In-app surveys",
+            "Status page link"
+        ],
+    },
+    {
+        "category": "Mobile & Accessibility",
+        "items": [
+            "Responsive touch UI",
+            "Offline note taking",
+            "Voice dictation",
+            "High contrast theme",
+            "Screen reader labels",
+            "Captioned media",
+            "Gesture shortcuts",
+            "Dynamic font sizing",
+            "Haptic feedback cues",
+            "Low-bandwidth mode"
+        ],
+    },
+]
+
+HOME_THEMES = [
+    {"id": "ocean", "label": "Ocean"},
+    {"id": "sunrise", "label": "Sunrise"},
+    {"id": "midnight", "label": "Midnight"},
+    {"id": "forest", "label": "Forest"},
+    {"id": "aurora", "label": "Aurora"},
+    {"id": "sand", "label": "Sahara"},
+]
+
+PROFILE_COLORS = [
+    "#3b82f6", "#a855f7", "#ec4899", "#14b8a6", "#f59e0b", "#ef4444",
+    "#22c55e", "#6366f1", "#0ea5e9", "#94a3b8"
+]
+
+
 @app.get("/")
 def home():
-    return render_template("index.html")
+    user = current_user()
+    return render_template(
+        "index.html",
+        user=user,
+        features=HOME_FEATURES,
+        board_themes=HOME_THEMES,
+        profile_colors=PROFILE_COLORS,
+    )
 
 @app.post("/new")
 def new_board():

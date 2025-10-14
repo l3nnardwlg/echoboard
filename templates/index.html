@@ -1,86 +1,882 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EchoBoard</title>
+  <title>EchoBoard · Golden Update</title>
   <style>
-    :root{
-      --bg:#0f172a;--bg-soft:#111c34;--panel:#0b1220;--line:#1e293b;--accent:#3b82f6;--accent-soft:#1d4ed8;--text:#e2e8f0;--text-soft:#94a3b8;
+    :root {
+      --bg: #04060f;
+      --bg-soft: #0b1222;
+      --panel: rgba(13, 23, 42, 0.75);
+      --panel-solid: #111b32;
+      --panel-line: rgba(148, 163, 184, 0.18);
+      --accent: #38bdf8;
+      --accent-strong: #0ea5e9;
+      --accent-soft: rgba(14, 165, 233, 0.18);
+      --positive: #34d399;
+      --warning: #facc15;
+      --negative: #f87171;
+      --text: #e2e8f0;
+      --text-soft: #94a3b8;
+      --text-mute: #64748b;
+      --radius-xl: 32px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --shadow-lg: 0 40px 120px rgba(8, 15, 30, 0.75);
+      --shadow-md: 0 24px 60px rgba(8, 15, 30, 0.5);
+      --shadow-sm: 0 14px 30px rgba(8, 15, 30, 0.25);
+      --grid-gap: clamp(18px, 2vw, 28px);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-      font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);
-      background:radial-gradient(circle at top,var(--bg-soft) 0%,var(--bg) 55%,#060b16 100%);
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 55%),
+                  radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.12), transparent 65%),
+                  linear-gradient(180deg, var(--bg) 0%, #030712 100%);
+      padding: clamp(16px, 4vw, 36px);
+      display: flex;
+      justify-content: center;
     }
-    .shell{width:100%;max-width:900px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
-    .hero{
-      background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(125,211,252,.08));
-      border:1px solid rgba(148,163,184,.25);border-radius:24px;padding:32px;box-shadow:0 24px 60px rgba(15,23,42,.35);
-      display:grid;gap:24px;position:relative;overflow:hidden;
+
+    .page {
+      width: min(1280px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: var(--grid-gap);
     }
-    .hero::after{
-      content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 0%,rgba(59,130,246,.18),transparent 55%);
-      pointer-events:none;mix-blend-mode:screen;
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(8, 47, 73, 0.35));
+      padding: clamp(18px, 2.4vw, 28px);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: clamp(12px, 3vw, 20px);
+      z-index: 10;
     }
-    h1{margin:0;font-size:2.4rem;line-height:1.1;letter-spacing:-.02em}
-    p{margin:0;font-size:1.05rem;color:var(--text-soft)}
-    .actions{display:flex;flex-wrap:wrap;gap:12px}
-    form{margin:0}
-    input,button{
-      border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.85);
-      padding:14px 18px;font-size:1rem;color:var(--text);
-      transition:.2s ease;border-bottom-width:2px;
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
     }
-    input{min-width:240px;background:rgba(15,23,42,.65)}
-    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.2)}
-    button{
-      background:linear-gradient(135deg,var(--accent),var(--accent-soft));border-color:transparent;font-weight:600;
-      cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 16px 32px rgba(59,130,246,.35);
+
+    .brand-icon {
+      height: 52px;
+      width: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      background: radial-gradient(circle at 25% 25%, rgba(56, 189, 248, 0.55), rgba(14, 165, 233, 0.1));
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.25), 0 8px 24px rgba(3, 105, 161, 0.35);
+      font-size: 24px;
     }
-    button:hover{transform:translateY(-1px);box-shadow:0 20px 40px rgba(59,130,246,.45)}
-    .nav{display:flex;justify-content:center;gap:16px;color:var(--text-soft);font-size:.95rem}
-    .nav a{color:var(--text);text-decoration:none;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.2)}
-    .nav a:hover{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4)}
-    @media(max-width:640px){
-      body{padding:16px}
-      .hero{padding:24px}
-      h1{font-size:2rem}
-      .actions{flex-direction:column;align-items:stretch}
-      input{width:100%}
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    nav {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(15, 23, 42, 0.55);
+      font-weight: 500;
+      transition: all 0.25s ease;
+    }
+
+    nav a:hover {
+      border-color: rgba(56, 189, 248, 0.8);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(8, 47, 73, 0.35);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      font-size: 0.95rem;
+      color: var(--text-soft);
+    }
+
+    .status-pill strong {
+      color: var(--text);
+    }
+
+    .status-indicator {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      background: var(--negative);
+      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .status-pill.online .status-indicator {
+      background: var(--positive);
+      box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.25);
+    }
+
+    main.layout {
+      display: grid;
+      gap: var(--grid-gap);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .hero {
+      grid-column: span 4;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--grid-gap);
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: var(--radius-xl);
+      padding: clamp(28px, 3vw, 42px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.35), transparent 55%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 12px 0 24px;
+      font-size: 1.05rem;
+      color: var(--text-soft);
+      max-width: 520px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .hero-actions form {
+      margin: 0;
+    }
+
+    .primary-btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 16px 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.05rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 18px 40px rgba(14, 165, 233, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 50px rgba(14, 165, 233, 0.5);
+    }
+
+    .join-board {
+      display: flex;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 999px;
+      padding: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .join-board input {
+      background: transparent;
+      border: none;
+      padding: 14px 18px;
+      color: var(--text);
+      flex: 1;
+      min-width: 200px;
+      font-size: 1rem;
+    }
+
+    .join-board input:focus {
+      outline: none;
+    }
+
+    .join-board button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .join-board button:hover {
+      background: rgba(56, 189, 248, 0.3);
+      color: #e0f2fe;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--panel-line);
+      padding: clamp(20px, 2.6vw, 28px);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+      letter-spacing: -0.01em;
+    }
+
+    .panel p {
+      margin: 8px 0 16px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .panel-grid {
+      grid-column: span 4;
+      display: grid;
+      gap: var(--grid-gap);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .panel.big {
+      grid-column: span 2;
+    }
+
+    .panel.full {
+      grid-column: span 4;
+    }
+
+    .status-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .status-card {
+      padding: 14px 18px;
+      background: rgba(15, 23, 42, 0.55);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      display: grid;
+      gap: 6px;
+    }
+
+    .status-card span {
+      color: var(--text-soft);
+      font-size: 0.9rem;
+    }
+
+    .status-card strong {
+      font-size: 1.1rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      gap: 16px;
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-row small {
+      color: var(--text-mute);
+      display: block;
+      margin-top: 4px;
+      font-size: 0.85rem;
+    }
+
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.35);
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      height: 24px;
+      width: 24px;
+      top: 3px;
+      left: 4px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s ease;
+    }
+
+    .switch[data-on="true"] {
+      background: rgba(56, 189, 248, 0.45);
+    }
+
+    .switch[data-on="true"]::after {
+      transform: translateX(20px);
+      background: #e0f2fe;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .theme-option {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-option.active {
+      border-color: rgba(56, 189, 248, 0.7);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+
+    .theme-chip {
+      height: 36px;
+      width: 36px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.65), rgba(14, 165, 233, 0.25));
+    }
+
+    .profile-row {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      margin-top: 18px;
+    }
+
+    .input-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .input-field label {
+      font-size: 0.9rem;
+      color: var(--text-soft);
+    }
+
+    .input-field input {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .color-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .color-dot {
+      height: 36px;
+      width: 36px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .color-dot.active {
+      border-color: rgba(255, 255, 255, 0.9);
+      transform: scale(1.08);
+    }
+
+    .board-preview {
+      background: linear-gradient(160deg, rgba(56, 189, 248, 0.18), rgba(12, 74, 110, 0.45));
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      display: grid;
+      gap: 16px;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      color: var(--text-soft);
+    }
+
+    .preview-columns {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .preview-column {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      display: grid;
+      gap: 10px;
+    }
+
+    .preview-column strong {
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .preview-card {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      font-size: 0.9rem;
+    }
+
+    .features-section {
+      background: rgba(15, 23, 42, 0.72);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: clamp(28px, 3vw, 46px);
+      box-shadow: var(--shadow-lg);
+      display: grid;
+      gap: 28px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .feature-card {
+      background: rgba(15, 23, 42, 0.55);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 18px 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .feature-card h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-soft);
+      display: grid;
+      gap: 6px;
+      font-size: 0.92rem;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-mute);
+      font-size: 0.85rem;
+      padding-bottom: 12px;
+    }
+
+    @media (max-width: 1024px) {
+      main.layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .panel-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      nav {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      main.layout,
+      .panel-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .status-pill {
+        align-self: flex-end;
+      }
     }
   </style>
 </head>
-<body>
-  <div class="shell">
-    <section class="hero">
-      <div>
-        <h1>EchoBoard Messenger</h1>
-        <p>Starte ein neues Board oder springe in deinen laufenden Chat – alles im vertrauten Messenger-Look.</p>
-      </div>
-      <div class="actions">
-        <form action="/new" method="post">
-          <button type="submit">➕ Neues Board starten</button>
-        </form>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <input id="code" placeholder="Board-Code eingeben… (z. B. a1b2c3)">
-          <button type="button" onclick="go()">Beitreten</button>
+<body data-logged-in="{{ 'true' if user else 'false' }}">
+  <div class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <h1>EchoBoard Golden Update</h1>
+          <div style="color: var(--text-soft); font-size: 0.95rem;">Release Nr. 3 · über 100 Features für dein nächstes Board</div>
         </div>
       </div>
+      <nav>
+        <a href="/discover">Discover</a>
+        <a href="/contacts">Contacts</a>
+        <a href="/settings">Settings</a>
+        <a href="/auth">Login / Register</a>
+      </nav>
+      <div class="status-pill {% if user %}online{% endif %}">
+        <span class="status-indicator"></span>
+        <div>
+          <strong>{% if user %}{{ user.username }}{% else %}Gast{% endif %}</strong><br>
+          <span>{% if user %}Du bist eingeloggt{% else %}Nicht angemeldet{% endif %}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="hero">
+        <div>
+          <h2>Starte Boards, moderiere Sessions und bleibe mit deinem Team verbunden.</h2>
+          <p>
+            Die Golden Update Experience bündelt Moderation, Messaging, Analytics und Personalisierung in einer neuen Home-Zentrale. Baue dein Board, passe dein Profil an und aktiviere über 100 Features mit einem Klick.
+          </p>
+          <div class="hero-actions">
+            <form action="/new" method="post">
+              <button type="submit" class="primary-btn">➕ Neues Board aufsetzen</button>
+            </form>
+            <div class="join-board">
+              <input id="join-code" placeholder="Board-Code eingeben (z. B. a1b2c3)" autocomplete="off">
+              <button type="button" id="join-button">Beitreten</button>
+            </div>
+          </div>
+        </div>
+        <div class="board-preview">
+          <div class="preview-header">
+            <div>
+              <strong>Team Retro Board</strong><br>
+              <span id="preview-visibility">Privat · Moderationsmodus</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <div class="status-indicator" id="preview-lock" style="background: var(--warning); box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.3);"></div>
+              <span id="preview-theme">Theme · Ocean</span>
+            </div>
+          </div>
+          <div class="preview-columns">
+            <div class="preview-column">
+              <strong>Highlights</strong>
+              <div class="preview-card">Realtime Sticky Notes</div>
+              <div class="preview-card">AI Zusammenfassung</div>
+              <div class="preview-card">Timer 10:00</div>
+            </div>
+            <div class="preview-column">
+              <strong>Actions</strong>
+              <div class="preview-card">Task Owner: {{ user.username if user else 'Noch offen' }}</div>
+              <div class="preview-card">Analytics Snapshot aktiviert</div>
+              <div class="preview-card">Export geplant 18:00</div>
+            </div>
+            <div class="preview-column">
+              <strong>Team</strong>
+              <div class="preview-card">Präsenz Radar aktiv</div>
+              <div class="preview-card">3 Moderatoren</div>
+              <div class="preview-card">9 Teilnehmer online</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-grid">
+        <div class="panel big">
+          <h3>Account &amp; Presence</h3>
+          <p>Verwalte deine Identität, Status-Presets und Team-Sichtbarkeit direkt aus der Home-Zentrale.</p>
+          <div class="status-cards">
+            <div class="status-card">
+              <span>Login Status</span>
+              <strong id="status-label">{% if user %}Aktiv{% else %}Offline{% endif %}</strong>
+              <span id="status-sub">{% if user %}Zuletzt aktualisiert eben{% else %}Bitte einloggen{% endif %}</span>
+            </div>
+            <div class="status-card">
+              <span>Workspace</span>
+              <strong>Golden HQ</strong>
+              <span>Team Slots: 32 · Gäste: 8</span>
+            </div>
+            <div class="status-card">
+              <span>Pro Features</span>
+              <strong>Aktiviert</strong>
+              <span>Analytics · Integrationen · Governance</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel big" id="board-settings">
+          <h3>Board Governance &amp; Privacy</h3>
+          <p>Konfiguriere Sichtbarkeit, Zutritt und Moderations-Workflows für dein Board.</p>
+          <div class="toggle-row">
+            <div>
+              <strong>Board öffentlich</strong>
+              <small>Mit einem Link beitretbar, ideal für Townhalls.</small>
+            </div>
+            <div class="switch" data-setting="public"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong>Moderator Approval</strong>
+              <small>Beiträge benötigen Freigabe. Perfekt für kuratierte Sessions.</small>
+            </div>
+            <div class="switch" data-setting="approval" data-on="true"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong>Teilnehmer dürfen exportieren</strong>
+              <small>Erlaubt CSV/PDF Exporte für kollaborative Dokumentation.</small>
+            </div>
+            <div class="switch" data-setting="exports" data-on="true"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong>Session Timer</strong>
+              <small>Schließt Board nach Ablauf automatisch.</small>
+            </div>
+            <div class="switch" data-setting="timer"></div>
+          </div>
+          <div class="theme-grid" id="theme-grid">
+            {% for theme in board_themes %}
+            <div class="theme-option{% if loop.first %} active{% endif %}" data-theme="{{ theme.id }}">
+              <div class="theme-chip"></div>
+              <div>
+                <strong>{{ theme.label }}</strong><br>
+                <span style="color: var(--text-soft); font-size: 0.85rem;">Preset {{ loop.index }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="panel big">
+          <h3>Profil Personalisierung</h3>
+          <p>Individualisiere dein Profil, definiere Farben, Botschaften und automatische Status-Wechsel.</p>
+          <div class="profile-row">
+            <div class="input-field">
+              <label for="display-name">Display Name</label>
+              <input id="display-name" value="{% if user %}{{ user.username }}{% else %}Guest Visionary{% endif %}">
+            </div>
+            <div class="input-field">
+              <label for="role-tag">Role Tag</label>
+              <input id="role-tag" placeholder="z. B. Moderator · Product Ops">
+            </div>
+          </div>
+          <div class="input-field" style="margin-top: 14px;">
+            <label>Profilfarbe</label>
+            <div class="color-palette" id="color-palette">
+              {% for color in profile_colors %}
+              <button type="button" class="color-dot{% if loop.first %} active{% endif %}" style="background: {{ color }}" data-color="{{ color }}"></button>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="profile-row" style="margin-top: 18px;">
+            <div class="input-field">
+              <label for="status-message">Status Message</label>
+              <input id="status-message" placeholder="Im Fokus, bitte asynchron">
+            </div>
+            <div class="input-field">
+              <label for="availability">Verfügbarkeit</label>
+              <input id="availability" value="{% if user %}Jetzt erreichbar{% else %}N/A{% endif %}">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel big">
+          <h3>Quick Automations</h3>
+          <p>Aktiviere Workflows und mache deinen Release sofort produktionsreif.</p>
+          <div class="status-card">
+            <span>Automationen aktiv</span>
+            <strong id="automation-count">5 Workflows</strong>
+            <span id="automation-label">Check-in Reminder, Sentiment Scan, Retro Export</span>
+          </div>
+          <div class="profile-row" style="margin-top: 18px;">
+            <div class="input-field">
+              <label for="automation-select">Nächste Automation</label>
+              <input id="automation-select" value="Sprint Retro Vorlage ausrollen">
+            </div>
+            <div class="input-field">
+              <label for="automation-time">Ausführung</label>
+              <input id="automation-time" value="Täglich 09:00">
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="features-section">
+      <div>
+        <h2 style="margin:0 0 12px; font-size: clamp(1.8rem, 3vw, 2.4rem);">Feature Galaxy · 100+ Fähigkeiten sofort verfügbar</h2>
+        <p style="margin:0; color: var(--text-soft); max-width: 760px;">
+          Jede Kategorie bringt zehn spezialisierte Features in deinen Golden Release. Kombiniere Collaboration, Analytics, Governance und mehr, um deine Boards einzigartig zu machen.
+        </p>
+      </div>
+      <div class="features-grid">
+        {% for block in features %}
+        <div class="feature-card">
+          <h4>✨ {{ block.category }}</h4>
+          <ul>
+            {% for item in block["items"] %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </div>
     </section>
-    <nav class="nav">
-      <a href="/discover">Entdecken</a>
-      <a href="/auth">Login · Registrieren</a>
-      <a href="/contacts">Kontakte</a>
-      <a href="/settings">Einstellungen</a>
-    </nav>
+
+    <footer>
+      EchoBoard Golden Update · Bereit für deinen Release Nr. 3 · Build 2024
+    </footer>
   </div>
   <script>
-    function go(){
-      const v = document.getElementById('code').value.trim();
-      if(v) location.href = '/b/'+encodeURIComponent(v);
-    }
+    (function() {
+      const joinButton = document.getElementById('join-button');
+      const joinInput = document.getElementById('join-code');
+      joinButton?.addEventListener('click', () => {
+        const value = (joinInput?.value || '').trim();
+        if (value) {
+          window.location.href = '/b/' + encodeURIComponent(value);
+        } else {
+          joinInput?.focus();
+        }
+      });
+      joinInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          joinButton?.click();
+        }
+      });
+
+      document.querySelectorAll('.switch').forEach((el) => {
+        if (!el.hasAttribute('data-on')) {
+          el.setAttribute('data-on', 'false');
+        }
+        el.addEventListener('click', () => {
+          const current = el.getAttribute('data-on') === 'true';
+          el.setAttribute('data-on', String(!current));
+          updatePreview();
+        });
+      });
+
+      document.querySelectorAll('.theme-option').forEach((option) => {
+        option.addEventListener('click', () => {
+          document.querySelectorAll('.theme-option').forEach((o) => o.classList.remove('active'));
+          option.classList.add('active');
+          updatePreview();
+        });
+      });
+
+      document.querySelectorAll('.color-dot').forEach((dot) => {
+        dot.addEventListener('click', () => {
+          document.querySelectorAll('.color-dot').forEach((d) => d.classList.remove('active'));
+          dot.classList.add('active');
+        });
+      });
+
+      function updatePreview() {
+        const publicOn = document.querySelector('.switch[data-setting="public"]').getAttribute('data-on') === 'true';
+        const approvalOn = document.querySelector('.switch[data-setting="approval"]').getAttribute('data-on') === 'true';
+        const timerOn = document.querySelector('.switch[data-setting="timer"]').getAttribute('data-on') === 'true';
+        const exportsOn = document.querySelector('.switch[data-setting="exports"]').getAttribute('data-on') === 'true';
+        const themeActive = document.querySelector('.theme-option.active');
+
+        const visibility = [];
+        visibility.push(publicOn ? 'Öffentlich' : 'Privat');
+        visibility.push(approvalOn ? 'Moderation aktiv' : 'Direkt posten');
+        if (timerOn) visibility.push('Timer gesetzt');
+        if (exportsOn) visibility.push('Export frei');
+        document.getElementById('preview-visibility').textContent = visibility.join(' · ');
+
+        const previewTheme = document.getElementById('preview-theme');
+        if (themeActive && previewTheme) {
+          const label = themeActive.querySelector('strong')?.textContent || 'Ocean';
+          previewTheme.textContent = 'Theme · ' + label;
+        }
+
+        const previewLock = document.getElementById('preview-lock');
+        if (previewLock) {
+          if (publicOn) {
+            previewLock.style.background = 'var(--positive)';
+            previewLock.style.boxShadow = '0 0 0 4px rgba(52, 211, 153, 0.3)';
+          } else {
+            previewLock.style.background = 'var(--warning)';
+            previewLock.style.boxShadow = '0 0 0 4px rgba(250, 204, 21, 0.3)';
+          }
+        }
+      }
+
+      updatePreview();
+    })();
   </script>
 </body>
 </html>
