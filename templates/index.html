@@ -5,23 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EchoBoard</title>
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Ubuntu;padding:24px;margin:0;background:#0f172a;color:#e2e8f0}
-    .card{background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:16px;max-width:720px;margin:auto}
-    .row{display:flex;gap:8px}
-    input,button{padding:10px 12px;border-radius:10px;border:1px solid #334155;background:#111827;color:#e2e8f0}
-    button{background:#3b82f6;border-color:#3b82f6;cursor:pointer;font-weight:700}
+    :root{
+      --bg:#0f172a;--bg-soft:#111c34;--panel:#0b1220;--line:#1e293b;--accent:#3b82f6;--accent-soft:#1d4ed8;--text:#e2e8f0;--text-soft:#94a3b8;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+      font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);
+      background:radial-gradient(circle at top,var(--bg-soft) 0%,var(--bg) 55%,#060b16 100%);
+    }
+    .shell{width:100%;max-width:900px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+    .hero{
+      background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(125,211,252,.08));
+      border:1px solid rgba(148,163,184,.25);border-radius:24px;padding:32px;box-shadow:0 24px 60px rgba(15,23,42,.35);
+      display:grid;gap:24px;position:relative;overflow:hidden;
+    }
+    .hero::after{
+      content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 0%,rgba(59,130,246,.18),transparent 55%);
+      pointer-events:none;mix-blend-mode:screen;
+    }
+    h1{margin:0;font-size:2.4rem;line-height:1.1;letter-spacing:-.02em}
+    p{margin:0;font-size:1.05rem;color:var(--text-soft)}
+    .actions{display:flex;flex-wrap:wrap;gap:12px}
+    form{margin:0}
+    input,button{
+      border-radius:999px;border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.85);
+      padding:14px 18px;font-size:1rem;color:var(--text);
+      transition:.2s ease;border-bottom-width:2px;
+    }
+    input{min-width:240px;background:rgba(15,23,42,.65)}
+    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.2)}
+    button{
+      background:linear-gradient(135deg,var(--accent),var(--accent-soft));border-color:transparent;font-weight:600;
+      cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 16px 32px rgba(59,130,246,.35);
+    }
+    button:hover{transform:translateY(-1px);box-shadow:0 20px 40px rgba(59,130,246,.45)}
+    .nav{display:flex;justify-content:center;gap:16px;color:var(--text-soft);font-size:.95rem}
+    .nav a{color:var(--text);text-decoration:none;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.2)}
+    .nav a:hover{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4)}
+    @media(max-width:640px){
+      body{padding:16px}
+      .hero{padding:24px}
+      h1{font-size:2rem}
+      .actions{flex-direction:column;align-items:stretch}
+      input{width:100%}
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>EchoBoard</h1>
-    <p>Realtime-Board für Notizen & Votes.</p>
-    <form action="/new" method="post"><button type="submit">➕ Neues Board</button></form>
-    <div style="height:12px"></div>
-    <div class="row">
-      <input id="code" placeholder="Board-Code (z. B. a1b2c3)">
-      <button onclick="go()">Beitreten</button>
-    </div>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <h1>EchoBoard Messenger</h1>
+        <p>Starte ein neues Board oder springe in deinen laufenden Chat – alles im vertrauten Messenger-Look.</p>
+      </div>
+      <div class="actions">
+        <form action="/new" method="post">
+          <button type="submit">➕ Neues Board starten</button>
+        </form>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="code" placeholder="Board-Code eingeben… (z. B. a1b2c3)">
+          <button type="button" onclick="go()">Beitreten</button>
+        </div>
+      </div>
+    </section>
+    <nav class="nav">
+      <a href="/auth">Login · Registrieren</a>
+      <a href="/contacts">Kontakte</a>
+      <a href="/settings">Einstellungen</a>
+    </nav>
   </div>
   <script>
     function go(){
@@ -29,10 +81,5 @@
       if(v) location.href = '/b/'+encodeURIComponent(v);
     }
   </script>
-  <p>
-  <a href="/auth">Login/Registrieren</a> · 
-  <a href="/contacts">Kontakte</a> · 
-  <a href="/settings">Einstellungen</a>
-</p>
 </body>
 </html>

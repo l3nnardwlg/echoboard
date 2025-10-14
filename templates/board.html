@@ -7,76 +7,149 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     :root{
-      --bg:#0f172a; --fg:#e2e8f0; --card:#0b1220; --stroke:#1e293b; --acc:#3b82f6; --ok:#22c55e;
+      --bg:#0b1220;--bg-soft:#111c34;--surface:#101a33;--surface-strong:#14203d;--line:rgba(15,23,42,.55);
+      --text:#f8fafc;--text-soft:#94a3b8;--accent:#3b82f6;--accent-strong:#1d4ed8;--success:#22c55e;
     }
-    .theme-ocean { --acc:#3b82f6; --ok:#22c55e; }
-    .theme-mint  { --acc:#2dd4bf; --ok:#84cc16; }
-    .theme-sunset{ --acc:#fb7185; --ok:#f59e0b; }
-    .theme-violet{ --acc:#8b5cf6; --ok:#06b6d4; }
-    .theme-slate { --acc:#64748b; --ok:#94a3b8; }
+    .theme-ocean{--accent:#3b82f6;--accent-strong:#1d4ed8;--success:#22c55e;}
+    .theme-mint{--accent:#2dd4bf;--accent-strong:#0f766e;--success:#84cc16;}
+    .theme-sunset{--accent:#fb7185;--accent-strong:#be123c;--success:#f59e0b;}
+    .theme-violet{--accent:#8b5cf6;--accent-strong:#5b21b6;--success:#06b6d4;}
+    .theme-slate{--accent:#64748b;--accent-strong:#475569;--success:#94a3b8;}
 
-    body{font-family:system-ui,Segoe UI,Roboto,Ubuntu;padding:16px;margin:0;background:var(--bg);color:var(--fg)}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-    .muted{color:#94a3b8}
-    .layout{display:grid;grid-template-columns:1fr 320px;gap:12px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-    .card{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px}
-    input,button,textarea,select{padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:#111827;color:var(--fg)}
-    button{background:var(--ok);border-color:var(--ok);cursor:pointer;font-weight:700}
-    .btn{background:var(--acc);border-color:var(--acc)}
-    textarea{min-height:80px}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .tag{font-size:12px;background:var(--stroke);padding:4px 8px;border-radius:999px}
-    .sidebar .section{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px;margin-bottom:12px}
-    .chat-log{height:320px;overflow:auto;border:1px solid var(--stroke);border-radius:10px;padding:8px;background:#0b1020}
-    .chat-item{margin:6px 0}
-    .chat-author{color:var(--acc);font-weight:700}
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;padding:24px;
+      font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);
+      background:radial-gradient(circle at top,var(--bg-soft) 0%,var(--bg) 45%,#060b16 100%);
+      display:flex;flex-direction:column;gap:20px;
+    }
+    .app-shell{
+      flex:1;display:grid;grid-template-columns:360px minmax(0,1fr);gap:24px;max-width:1200px;margin:0 auto;width:100%;
+    }
+    .panel{
+      background:var(--surface);border:1px solid rgba(148,163,184,.18);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:22px;
+      box-shadow:0 30px 60px rgba(8,15,30,.35);
+    }
+    .panel-header{display:flex;flex-direction:column;gap:12px}
+    .board-meta{display:flex;flex-direction:column;gap:4px}
+    .board-code{font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+    .presence{font-size:.9rem;color:var(--text-soft)}
+    .control-row{display:flex;gap:10px;flex-wrap:wrap}
+    label{font-size:.85rem;color:var(--text-soft)}
+    input,textarea,select,button{
+      border-radius:18px;border:1px solid rgba(148,163,184,.25);background:rgba(15,23,42,.75);
+      color:var(--text);font-size:1rem;padding:12px 16px;transition:.2s ease;border-bottom-width:2px;
+    }
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+    select{padding-right:36px;background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>');background-repeat:no-repeat;background-position:right 14px center;background-size:12px}
+    button{background:linear-gradient(135deg,var(--accent),var(--accent-strong));border-color:transparent;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 20px 30px rgba(59,130,246,.35)}
+    button:hover{transform:translateY(-1px);box-shadow:0 24px 44px rgba(59,130,246,.45)}
+    .composer textarea{width:100%;min-height:120px;resize:vertical;background:rgba(15,23,42,.6)}
+    .composer-footer{display:flex;gap:10px;align-items:center}
+    .composer-footer select{width:120px}
+    .composer-footer button{flex:1}
+    .cards{flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px}
+    .card-bubble{
+      background:rgba(15,23,42,.85);border:1px solid rgba(148,163,184,.2);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;
+    }
+    .card-bubble::before{
+      content:"";position:absolute;left:-10px;bottom:22px;width:18px;height:18px;background:inherit;border:inherit;border-top:none;border-right:none;border-radius:0 0 0 16px;transform:skewY(12deg);
+    }
+    .tag{font-size:.85rem;background:rgba(148,163,184,.15);padding:4px 10px;border-radius:999px;color:var(--text-soft)}
+    .bubble-header{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--text-soft);font-size:.85rem}
+    .bubble-body{white-space:pre-wrap;line-height:1.5;font-size:1.02rem}
+    .bubble-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:.85rem;color:var(--text-soft)}
+    .bubble-footer button{flex:0 0 auto;padding:8px 14px;font-size:.9rem;border-radius:16px;background:linear-gradient(135deg,var(--success),#15803d);box-shadow:none}
+    .bubble-footer button:hover{box-shadow:0 16px 28px rgba(34,197,94,.35)}
+
+    .chat-panel{position:relative;overflow:hidden}
+    .chat-panel::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 90% 10%,rgba(59,130,246,.12),transparent 55%);pointer-events:none}
+    .chat-header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+    .chat-header h2{margin:0;font-size:1.4rem;letter-spacing:-.01em}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;max-width:280px}
+    .chip{padding:6px 12px;background:rgba(148,163,184,.18);border-radius:999px;font-size:.85rem;color:var(--text-soft)}
+    .chat-log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:6px}
+    .chat-item{display:flex;flex-direction:column;gap:4px;max-width:80%}
+    .chat-item .chat-author{font-size:.8rem;font-weight:600;color:var(--accent)}
+    .chat-item .bubble{padding:12px 16px;border-radius:18px 18px 18px 6px;background:rgba(15,23,42,.8);border:1px solid rgba(148,163,184,.18);line-height:1.5;font-size:1rem;color:var(--text)}
+    .chat-item.is-me{margin-left:auto;align-items:flex-end}
+    .chat-item.is-me .chat-author{color:var(--success)}
+    .chat-item.is-me .bubble{background:linear-gradient(135deg,var(--accent),var(--accent-strong));color:#f8fafc;border:none;border-radius:18px 18px 6px 18px;box-shadow:0 16px 32px rgba(59,130,246,.35)}
+    .chat-footer{display:flex;gap:12px;align-items:center;padding-top:6px}
+    .chat-footer input{flex:1;background:rgba(15,23,42,.7)}
+    .chat-footer button{padding:12px 20px}
+    .identity{display:flex;flex-direction:column;gap:6px}
+    .identity input{width:220px}
+
+    @media(max-width:1100px){
+      .app-shell{grid-template-columns:1fr;max-width:680px}
+      .cards{max-height:320px}
+      .chat-panel{min-height:420px}
+    }
+    @media(max-width:640px){
+      body{padding:16px}
+      .panel{padding:18px;border-radius:18px}
+      .identity input{width:100%}
+    }
   </style>
 </head>
 <body class="theme-{{ theme|default('ocean') }}">
-  <div class="top">
-    <div>EchoBoard • <strong>{{ code }}</strong> <span class="muted" id="presence">● 0 online</span></div>
-    <div class="row">
-      <input id="nick" placeholder="Dein Name (optional)" style="width:180px">
-      <select id="theme">
-        <option value="ocean">Ocean</option>
-        <option value="mint">Mint</option>
-        <option value="sunset">Sunset</option>
-        <option value="violet">Violet</option>
-        <option value="slate">Slate</option>
-      </select>
-      <button class="btn" onclick="copyLink()">Link kopieren</button>
+  <header style="max-width:1200px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;gap:18px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span style="letter-spacing:.12em;font-size:.75rem;color:var(--text-soft);text-transform:uppercase">Board-Code</span>
+      <span style="font-size:1.6rem;font-weight:700">{{ code }}</span>
     </div>
-  </div>
-
-  <div class="layout">
-    <div>
-      <div class="row" style="margin-bottom:12px">
-        <textarea id="text" placeholder="Neue Karte… (max 280)"></textarea>
-        <select id="tag">
-          <option value="">(Tag)</option>
-          <option>🟢</option><option>🟡</option><option>🔴</option>
-          <option>⚡️</option><option>❓</option>
-        </select>
-        <button onclick="create()">Hinzufügen</button>
-      </div>
-      <div class="grid" id="cards"></div>
+    <div class="identity">
+      <label for="nick">Dein Anzeigename</label>
+      <input id="nick" placeholder="(optional)">
     </div>
-
-    <div class="sidebar">
-      <div class="section">
-        <div style="font-weight:700;margin-bottom:8px">Wer ist hier?</div>
-        <div id="names" class="muted">–</div>
-      </div>
-      <div class="section">
-        <div style="font-weight:700;margin-bottom:8px">Chat</div>
-        <div id="chat" class="chat-log"></div>
-        <div class="row" style="margin-top:8px">
-          <input id="chatText" placeholder="Nachricht… (Enter)" style="flex:1">
-          <button class="btn" onclick="sendChat()">Senden</button>
+  </header>
+  <div class="app-shell">
+    <aside class="panel">
+      <div class="panel-header">
+        <div class="board-meta">
+          <div class="board-code">Team Board</div>
+          <div class="presence" id="presence">● 0 online</div>
+        </div>
+        <div class="control-row">
+          <select id="theme">
+            <option value="ocean">Ocean</option>
+            <option value="mint">Mint</option>
+            <option value="sunset">Sunset</option>
+            <option value="violet">Violet</option>
+            <option value="slate">Slate</option>
+          </select>
+          <button type="button" onclick="copyLink()">Link kopieren</button>
         </div>
       </div>
-    </div>
+      <div class="composer">
+        <label for="text">Neue Karte</label>
+        <textarea id="text" placeholder="Teile eure nächsten Schritte… (max. 280 Zeichen)"></textarea>
+        <div class="composer-footer">
+          <select id="tag">
+            <option value="">Tag</option>
+            <option>🟢</option><option>🟡</option><option>🔴</option>
+            <option>⚡️</option><option>❓</option>
+          </select>
+          <button type="button" onclick="create()">Posten</button>
+        </div>
+      </div>
+      <div class="cards" id="cards"></div>
+    </aside>
+    <main class="panel chat-panel">
+      <div class="chat-header">
+        <div>
+          <h2>Live-Chat</h2>
+          <p style="margin:4px 0 0;font-size:.95rem;color:var(--text-soft)">Koordiniert euch in Echtzeit – eure Nachrichten erscheinen sofort bei allen.</p>
+        </div>
+        <div class="chips" id="names"></div>
+      </div>
+      <div class="chat-log" id="chat"></div>
+      <div class="chat-footer">
+        <input id="chatText" placeholder="Nachricht eingeben… (Enter)">
+        <button type="button" onclick="sendChat()">Senden</button>
+      </div>
+    </main>
   </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -104,35 +177,41 @@ const socket = io("/", {
 
   function cardHtml(c){
     const tag = c.tag ? `<span class="tag">${escapeHtml(c.tag)}</span>` : "";
-    return `<div class="card" id="card-${c.id}">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div>${tag}</div>
-        <div class="muted" style="font-size:12px">#${c.id}</div>
+    const author = c.author ? `<span>von ${escapeHtml(c.author)}</span>` : "<span>Anonyme Karte</span>";
+    return `<article class="card-bubble" id="card-${c.id}">
+      <div class="bubble-header">
+        <div style="display:flex;align-items:center;gap:8px">${tag}</div>
+        <span>#${c.id}</span>
       </div>
-      <div style="margin:8px 0;white-space:pre-wrap">${escapeHtml(c.text)}</div>
-      <div class="row">
+      <div class="bubble-body">${escapeHtml(c.text)}</div>
+      <div class="bubble-footer">
+        ${author}
         <button onclick="vote(${c.id})">👍 ${c.votes ?? 0}</button>
       </div>
-    </div>`;
+    </article>`;
   }
   function renderCards(cards){ cardsEl.innerHTML = cards.map(cardHtml).join(""); }
   function addCard(c){ cardsEl.insertAdjacentHTML("afterbegin", cardHtml(c)); }
   function updateCard(c){ const el = document.getElementById(`card-${c.id}`); if(el) el.outerHTML = cardHtml(c); }
 
   function renderMessages(list){
-    chatEl.innerHTML = list.map(m=>(
-      `<div class="chat-item">
-         <span class="chat-author">${escapeHtml(m.author||"Anon")}:</span>
-         <span>${escapeHtml(m.text)}</span>
-       </div>`
-    )).join("");
+    chatEl.innerHTML = list.map(messageHtml).join("");
     chatEl.scrollTop = chatEl.scrollHeight;
   }
   function addMessage(m){
-    chatEl.insertAdjacentHTML("beforeend",
-      `<div class="chat-item"><span class="chat-author">${escapeHtml(m.author||"Anon")}:</span> <span>${escapeHtml(m.text)}</span></div>`
-    );
+    chatEl.insertAdjacentHTML("beforeend", messageHtml(m));
     chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function messageHtml(m){
+    const nick = $("#nick").value.trim();
+    const author = escapeHtml(m.author || "Anon");
+    const text = escapeHtml(m.text || "");
+    const isMe = nick && m.author && m.author === nick;
+    return `<div class="chat-item${isMe?" is-me":""}">
+      <span class="chat-author">${author}</span>
+      <div class="bubble">${text}</div>
+    </div>`;
   }
 
   function create(){
@@ -192,7 +271,8 @@ const socket = io("/", {
   socket.on("theme_changed", ({theme})=> applyTheme(theme));
   socket.on("presence", ({count, names})=>{
     $("#presence").textContent = `● ${count} online`;
-    $("#names").textContent = (names && names.length) ? names.join(", ") : "–";
+    const list = (names && names.length) ? names : [];
+    $("#names").innerHTML = list.length ? list.map(n=>`<span class="chip">${escapeHtml(n)}</span>`).join("") : `<span class="chip">Niemand aktiv</span>`;
   });
 </script>
 </body>
