@@ -199,6 +199,88 @@
       margin: 0;
     }
 
+    .create-board-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 18px;
+      padding: 12px;
+      min-width: 320px;
+    }
+
+    .create-board-form .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .create-board-form input,
+    .create-board-form select {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      padding: 10px 12px;
+      color: var(--text);
+      border-radius: 12px;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .create-board-form input[type="color"] {
+      padding: 4px;
+      height: 44px;
+      flex: 0 0 64px;
+    }
+
+    .hub-grid {
+      display: grid;
+      gap: var(--grid-gap);
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .board-list,
+    .notification-list,
+    .group-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .board-card,
+    .notification-item,
+    .group-item {
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.2s ease, border 0.2s ease;
+    }
+
+    .board-card:hover,
+    .notification-item:hover,
+    .group-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+
+    .board-card a,
+    .group-item a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .notification-item small,
+    .board-card small,
+    .group-item small {
+      color: var(--text-soft);
+      font-size: 0.8rem;
+    }
+
     .primary-btn {
       appearance: none;
       border: none;
@@ -608,7 +690,17 @@
             Die Golden Update Experience bündelt Moderation, Messaging, Analytics und Personalisierung in einer neuen Home-Zentrale. Baue dein Board, passe dein Profil an und aktiviere über 100 Features mit einem Klick.
           </p>
           <div class="hero-actions">
-            <form action="/new" method="post">
+            <form action="/new" method="post" class="create-board-form">
+              <div class="form-row">
+                <input name="title" placeholder="Board-Titel" maxlength="80">
+                <select name="template">
+                  <option value="">Leeres Board</option>
+                  {% for key, tpl in templates.items() %}
+                  <option value="{{ key }}">{{ tpl.title }}</option>
+                  {% endfor %}
+                </select>
+                <input type="color" name="accent" value="#38bdf8" title="Akzentfarbe">
+              </div>
               <button type="submit" class="primary-btn">➕ Neues Board aufsetzen</button>
             </form>
             <div class="join-board">
@@ -650,6 +742,53 @@
           </div>
         </div>
       </section>
+
+      {% if user %}
+      <section class="hub-grid">
+        <div class="panel">
+          <div class="panel-heading"><h3>Deine Boards</h3><small style="color:var(--text-soft);">{{ boards|length }} aktiv</small></div>
+          <div class="board-list">
+            {% for board in boards %}
+            <div class="board-card">
+              <div><strong>{{ board.title or 'Unbenanntes Board' }}</strong></div>
+              <small>Code: {{ board.code }} · Rolle: {{ board.role|capitalize }}</small>
+              <a href="/b/{{ board.code }}">Board öffnen →</a>
+            </div>
+            {% else %}
+            <div class="board-card">Noch keine Boards – starte gleich im Hero oben ein neues Projekt.</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><h3>Aktuelle Mitteilungen</h3></div>
+          <div class="notification-list">
+            {% for note in notifications %}
+            <div class="notification-item">
+              <strong>{{ note.content }}</strong>
+              <small>{{ note.created_at }}</small>
+              {% if note.link %}<a href="{{ note.link }}">Ansehen →</a>{% endif %}
+            </div>
+            {% else %}
+            <div class="notification-item">Keine neuen Benachrichtigungen – du bist auf dem neuesten Stand.</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><h3>Gruppenräume</h3><small style="color:var(--text-soft);">Beta</small></div>
+          <div class="group-list">
+            {% for room in group_rooms %}
+            <div class="group-item">
+              <strong>{{ room.title }}</strong>
+              <small>Slug: {{ room.slug }}</small>
+              <a href="/g/{{ room.slug }}">Gruppe betreten →</a>
+            </div>
+            {% else %}
+            <div class="group-item">Noch keine Gruppenräume – nutze die Admin-Konsole, um einen Raum anzulegen.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+      {% endif %}
 
       <section class="panel-grid">
         <div class="panel big">
@@ -802,6 +941,35 @@
     (function() {
       const joinButton = document.getElementById('join-button');
       const joinInput = document.getElementById('join-code');
+      const accentInput = document.querySelector('input[name="accent"]');
+      const rootStyle = getComputedStyle(document.documentElement);
+      const baseAccent = rootStyle.getPropertyValue('--accent');
+      const baseAccentStrong = rootStyle.getPropertyValue('--accent-strong');
+
+      function applyHomeTheme() {
+        const light = window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (light) {
+          document.documentElement.style.setProperty('--bg', '#f5f6ff');
+          document.documentElement.style.setProperty('--panel', 'rgba(255,255,255,0.75)');
+          document.documentElement.style.setProperty('--text', '#1e293b');
+          document.documentElement.style.setProperty('--text-soft', '#475569');
+        } else {
+          document.documentElement.style.setProperty('--bg', '#04060f');
+          document.documentElement.style.setProperty('--panel', 'rgba(13, 23, 42, 0.75)');
+          document.documentElement.style.setProperty('--text', '#e2e8f0');
+          document.documentElement.style.setProperty('--text-soft', '#94a3b8');
+        }
+      }
+
+      applyHomeTheme();
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyHomeTheme);
+
+      accentInput?.addEventListener('input', (event) => {
+        const value = event.target.value || baseAccent;
+        document.documentElement.style.setProperty('--accent', value);
+        document.documentElement.style.setProperty('--accent-strong', value);
+      });
+
       joinButton?.addEventListener('click', () => {
         const value = (joinInput?.value || '').trim();
         if (value) {
